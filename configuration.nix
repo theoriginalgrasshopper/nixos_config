@@ -1,8 +1,3 @@
-# Edit this configuration file to define what should be installed on
-# your system.  Help is available in the configuration.nix(5) man page
-# and in the NixOS manual (accessible by running ‘nixos-help’).
-# theoriginalgrasshopper's presonal nixos configuration.nix file. awesome, bash. 'home' is the hostname, 'nixhop' is the username. If you find any problems, refer to the issues tab on GitHub------------------- 
-
 { config, pkgs, ... }:
 
 {
@@ -16,21 +11,16 @@
   boot.loader.efi.canTouchEfiVariables = true;
 
   networking.hostName = "home"; # Define your hostname.
-#  networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
-
-  # Configure network proxy if necessary
-  # networking.proxy.default = "http://user:password@proxy:port/";
-  # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
 
   # Enable networking
   networking.networkmanager.enable = true;
  
   # BLUETOOTH
 
-
   hardware.bluetooth.enable = true; # enables support for Bluetooth
   hardware.bluetooth.powerOnBoot = true; # powers up the default Bluetooth controller on boot
-  # STUPID ELECTRON SMH
+
+  # STUPID ELECTRON
 
   nixpkgs.config.permittedInsecurePackages = [ "electron-25.9.0" ];
   
@@ -45,12 +35,16 @@
 
   programs.direnv.enable = true;
 
+  virtualisation.virtualbox.host.enable = true;
+  users.extraGroups.vboxusers.members = [ "user-with-access-to-virtualbox" ];
+
   # GVFS AND THUNAR
 
   services.gvfs.enable = true;
   programs.thunar.plugins = with pkgs.xfce; [
     thunar-archive-plugin
   ];
+
   # SOUND --------------!
 
   sound.enable = true;
@@ -63,13 +57,16 @@
     jack.enable = true;
   };
   hardware.pulseaudio.enable = false;
+
   # VDAGENT
   systemd.user.services.spice-agent = { 
     enable = true;
   };
+
   # OPENTABLET
   hardware.opentabletdriver.daemon.enable = true;
   hardware.opentabletdriver.enable = true;
+
   # NVIDIA BULLSHIT ---------------!
   
   hardware.nvidia.package = config.boot.kernelPackages.nvidiaPackages.legacy_390;
@@ -134,12 +131,10 @@
 
   boot.supportedFilesystems = [ "ntfs" ];
   boot.initrd.kernelModules = [ "usbhid" "joydev" "xpad" ];
+
   # VMS  
   virtualisation.libvirtd.enable = true;
   programs.virt-manager.enable = true;
-
-  # Set your time zone.
-
 
   # Set your time zone.
   time.timeZone = "Europe/Kyiv";
@@ -177,7 +172,23 @@
   nixpkgs.config.allowUnfree = true;
   nixpkgs.config.nvidia.acceptLicense = true;
 
+  # PRINTING
+  services.printing.enable = true;
+  services.printing.drivers = [ pkgs.epsonscan2 ];
 
+  services.printing.browsing = true;
+  services.printing.browsedConf = ''
+  BrowseDNSSDSubTypes _cups,_print
+  BrowseLocalProtocols all
+  BrowseRemoteProtocols all
+  CreateIPPPrinterQueues All
+
+  BrowseProtocols all
+      '';
+  services.avahi = {
+    enable = true;
+    nssmdns = true;
+  };
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [ # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
@@ -193,6 +204,7 @@
     dunst
     libnotify
     swww
+    libreoffice
     rofi-wayland
     pciutils
     kitty
@@ -204,7 +216,6 @@
     xfce.thunar
     font-manager
     vscode
-    vscodium
     reaper
     audacity
     qjackctl
@@ -265,13 +276,39 @@
     sassc
     libsForQt5.qt5ct
     libsForQt5.bluedevil
+    libsForQt5.kdenlive
+    lxqt.qps
+    libguestfs-with-appliance
+    dotnet-sdk_8
+    imhex
+    gperftools
+    system-config-printer
+    speedcrunch
+    blueberry
+    # WINE
+    wineWowPackages.stable
+    bottles
+    winetricks
+    otpclient
+    lutris
+    drumgizmo
+    guitarix
+    gxplugins-lv2
+    godot3
+    (pkgs.discord.override { withVencord = true; })
+    ventoy-full
+    (ventoy.override {
+      defaultGuiType = "gtk3";
+      withGtk3 = true;
+     })
    ];
   nixpkgs.config.packageOverrides = pkgs: {
     xfce = pkgs.xfce // {
       gvfs = pkgs.gvfs;
     };
   };
-  # FONTS
+ 
+ # FONTS
   fonts.packages = with pkgs; [
     font-awesome
   ];
@@ -281,31 +318,6 @@
     QT_QPA_PLATFORMTHEME = "qt5ct";
   };  
 
-  # Some programs need SUID wrappers, can be configured further or are
-  # started in user sessions.
-  # programs.mtr.enable = true;
-  # programs.gnupg.agent = {
-  #   enable = true;
-  #   enableSSHSupport = true;
-  # };
-
-  # List services that you want to enable:
-
-  # Enable the OpenSSH daemon.
-  # services.openssh.enable = true;
-
-  # Open ports in the firewall.
-  # networking.firewall.allowedTCPPorts = [ ... ];
-  # networking.firewall.allowedUDPPorts = [ ... ];
-  # Or disable the firewall altogether.
-  # networking.firewall.enable = false;
-
-  # This value determines the NixOS release from which the default
-  # settings for stateful data, like file locations and database versions
-  # on your system were taken. It‘s perfectly fine and recommended to leave
-  # this value at the release version of the first install of this system.
-  # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
   system.stateVersion = "23.11"; # Did you read the comment?
-
 }
